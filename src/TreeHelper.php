@@ -62,7 +62,7 @@ class TreeHelper
         $root->setIsRootNode(true);
 
         if (is_string($idGetter)) {
-            $idKey = $pidGetter;
+            $idKey = $idGetter;
             $idGetter = function ($item) use ($idKey) { return $item[$idKey]; };
         }
 
