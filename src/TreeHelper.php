@@ -61,8 +61,8 @@ class TreeHelper
     public static function fromArray($array, $idGetter, $pidGetter, $creator = null) {
         if ($creator) {
             // без параметров - получаем root node
+            // нужно ли ей задавать   setIsRootNode(true)  определяет creator
             $root = $creator();
-            $root->setIsRootNode(true);
         } else {
             $root = new TreeNode();
             $root->setIsRootNode(true);
