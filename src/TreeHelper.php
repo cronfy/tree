@@ -54,12 +54,19 @@ class TreeHelper
      * @param $array
      * @param callable|string $idGetter
      * @param callable $pidGetter
+     * @param callable $creator
      * @return TreeNode
      * @throws \Exception
      */
-    public static function fromArray($array, $idGetter, $pidGetter) {
-        $root = new TreeNode();
-        $root->setIsRootNode(true);
+    public static function fromArray($array, $idGetter, $pidGetter, $creator = null) {
+        if ($creator) {
+            // без параметров - получаем root node
+            $root = $creator();
+            $root->setIsRootNode(true);
+        } else {
+            $root = new TreeNode();
+            $root->setIsRootNode(true);
+        }
 
         if (is_string($idGetter)) {
             $idKey = $idGetter;
@@ -74,13 +81,23 @@ class TreeHelper
         $nodes = [];
         foreach ($array as $item) {
             $itemId = $idGetter($item);
-            $node = new TreeNode();
-            $node->value = $item;
+            if ($creator) {
+                $node = $creator($item);
+            } else {
+                $node = new TreeNode();
+                $node->value = $item;
+            }
             $nodes[$itemId] = $node;
         }
 
         foreach ($nodes as $node) {
-            $pid = $pidGetter($node->value);
+            if ($creator) {
+                // если у нас есть creator, то он может создать произвольную ноду с TreeTrait, а не TreeNode.
+                // Поэтому передавать в pidGetter нужно саму ноду, а не value
+                $pid = $pidGetter($node);
+            } else {
+                $pid = $pidGetter($node->value);
+            }
             if (array_key_exists($pid, $nodes)) {
                 $parent = $nodes[$pid];
             } else {
