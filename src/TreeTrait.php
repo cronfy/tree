@@ -213,6 +213,72 @@ trait TreeTrait
 
     /**
      * @param $child static
+     * @param $before static
+     * @throws \Exception
+     */
+    public function addChildNodeBefore($child, $before) {
+        if ($child->getParentNode()) {
+            throw new \Exception("Already has a parent");
+        }
+        if ($before->getParentNode() !== $this) {
+            throw new \Exception("Can't add node before foreign child");
+        }
+
+        // Если этой ноде когда-то делался replaceWith, то у нее может
+        // быть сбит владелец (так и задумано в реализации replaceWith()).
+        // Проставим правильного владельца.
+        // Нельзя просто делать $child->setTreeNodeToken(null) для сброса
+        // токена, так как при этом потеряется информация об имеющихся childNodes
+        $child->getTreeNodeToken()->owner = $child;
+
+        $newMeta = [
+            'child' => [
+                'token' => $child->getTreeNodeToken(),
+                'meta' => [
+                    'parent' => $this->getTreeNodeToken(),
+                    'next' => $before->getTreeNodeToken(),
+                    'prev' => $before->getTreeNodeToken()->meta['prev'],
+                ]
+            ],
+
+            'before' => [
+                'token' => $before->getTreeNodeToken(),
+                'meta' => [
+                    'prev' => $child->getTreeNodeToken(),
+                ],
+            ],
+
+            'oldBeforePrev' => [
+                'token' => $before->getTreeNodeToken()->meta['prev'],
+                'meta' => [
+                    'next' => $child->getTreeNodeToken(),
+                ]
+            ],
+
+            'parent' => [
+                'token' => $this->getTreeNodeToken(),
+                'meta' => [
+                    'firstChild' =>
+                        ($before->getTreeNodeToken() === $this->getTreeNodeToken()->meta['firstChild'])
+                            ? $child->getTreeNodeToken()
+                            : $this->getTreeNodeToken()->meta['firstChild']
+                ]
+            ],
+        ];
+
+        foreach ($newMeta as $name => $member) {
+            if (!$marker = $member['token']) continue;
+
+            foreach ($member['meta'] as $key => $value) {
+                $marker->meta[$key] = $value;
+            }
+        }
+
+        $this->getTreeNodeToken()->meta['children'][spl_object_hash($child->getTreeNodeToken())] = $child->getTreeNodeToken();
+    }
+
+    /**
+     * @param $child static
      * @throws \Exception
      */
     public function removeChildNode($child) {
