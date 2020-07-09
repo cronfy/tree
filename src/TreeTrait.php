@@ -19,6 +19,9 @@ trait TreeTrait
      */
     protected $_treeNodeToken;
 
+    /**
+     * @return NodeToken
+     */
     public function getTreeNodeToken() {
         if (!$this->_treeNodeToken) {
             $this->_treeNodeToken = new NodeToken();
@@ -405,6 +408,7 @@ trait TreeTrait
      * @internal
      *
      * @param $value NodeToken|null
+     * @return void
      */
     public function setTreeNodeToken($value) {
         $this->_treeNodeToken = $value;
@@ -414,6 +418,7 @@ trait TreeTrait
      * Заменяет в дереве текущую ноду на $newNode.
      *
      * @param $newNode static
+     * @return void
      */
     public function replaceWith($newNode) {
         // новой ноде даем наш токен, чтобы она стала частью дерева вместо нас
@@ -447,6 +452,9 @@ trait TreeTrait
         return;
     }
 
+    /**
+     * @return bool
+     */
     public function getHasChildNodes() {
         $this->initChildNodes();
         return !empty($this->getTreeNodeToken()->meta['children']);
@@ -499,6 +507,11 @@ trait TreeTrait
         }
     }
 
+    /**
+     * @param int $level
+     * @param callable $filter
+     * @return static[]|void
+     */
     public function walkReverse($level = 0, callable $filter = null) {
         if ($filter && !$filter($this)) return;
 
@@ -521,6 +534,9 @@ trait TreeTrait
         yield $level => $this;
     }
 
+    /**
+     * @return \Generator|static[]
+     */
     public function walkUp() {
         $current = $this;
 
@@ -531,6 +547,9 @@ trait TreeTrait
         } while ($current);
     }
 
+    /**
+     * @return \Generator|static[]
+     */
     public function walkDown() {
         $result = [];
         foreach ($this->walkUp() as $parent) {
